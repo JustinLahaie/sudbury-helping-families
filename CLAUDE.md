@@ -30,6 +30,18 @@ Text Light:         #e0f7fa (light cyan for headings)
 - Two-tone accent colors (cyan + amber)
 - Clean, modern, welcoming feel
 
+### Navigation
+
+- **Mobile-first responsive design**
+- **Collapsible sidebar navigation** (hamburger menu on mobile/tablet)
+- Sidebar slides in from left on mobile
+- Smooth open/close animations
+- Overlay backdrop when sidebar is open
+- Desktop: Can be persistent sidebar or top nav (user preference)
+- Links: Home, About Us, Gallery, Events, Donate, Contact Us
+- Logo in header/sidebar
+- Social links (Facebook) in sidebar footer
+
 ## Pages
 
 ### Home Page
