@@ -13,6 +13,9 @@ Community-driven charity website - Est. 2012
 - Framer Motion (scroll animations)
 - Stripe (donations/payments)
 - Lucide React (icons)
+- NextAuth.js (admin authentication)
+- Prisma + PostgreSQL (database) or Supabase
+- Cloudinary (image uploads)
 - Glassmorphism dark theme
 
 ## Design System
@@ -123,6 +126,76 @@ Text Light:         #e0f7fa (light cyan for headings)
 - **Map embed** (optional) - Sudbury area
 - Note: Support provided through referrals only, not unsolicited requests
 
+## Admin Dashboard (/admin)
+
+### Authentication
+- Secure login page (email/password)
+- Protected routes - only accessible when logged in
+- Session management with NextAuth.js
+- Password reset functionality
+
+### Dashboard Home
+- Quick stats overview (total donations, messages, events)
+- Recent activity feed
+- Quick action buttons
+
+### Timeline Manager
+- **View all timeline slides** in a sortable list/grid
+- **Add new slide:**
+  - Upload image (drag & drop or file picker)
+  - Set date/year
+  - Add title and description
+  - Set display order
+- **Edit existing slides** - update image, text, date
+- **Delete slides** with confirmation
+- **Reorder slides** via drag-and-drop
+- Preview how slide will look on site
+
+### Events Manager
+- **View all events** (upcoming + past)
+- **Create new event:**
+  - Title, description, location
+  - Date and time
+  - Optional image
+  - Status (draft/published)
+- **Edit/delete events**
+- **Toggle event visibility**
+- Auto-archive past events
+
+### Donations
+- **View donation history** from Stripe
+- Filter by date range
+- Total amounts summary
+- Export to CSV
+- View donor details (if provided)
+
+### Contact Messages
+- **Inbox view** of all form submissions
+- Mark as read/unread
+- Mark as responded
+- Delete old messages
+- Reply directly (opens email client)
+
+### Testimonials Manager
+- **Pending approvals** queue
+- Approve/reject submissions
+- Edit testimonial text
+- Manage displayed testimonials
+- Set display order
+
+### Site Settings
+- **Impact stats** - update numbers (families helped, years active, etc.)
+- **Contact info** - update email, phone, address
+- **Partner logos** - add/remove/reorder
+- **Social links** - update Facebook URL
+- **About content** - edit mission statement and about text
+
+### Media Library
+- View all uploaded images
+- Upload new images
+- Delete unused images
+- Image optimization info
+
 ## Assets
 
 - Logo: `Files/LOGO/FB_IMG_1762658891338.jpg`
@@ -192,8 +265,90 @@ npm run start   # Start production server
 ## Dependencies to Install
 
 ```bash
+# UI & Animations
 npm install framer-motion          # Animations
-npm install @stripe/stripe-js      # Stripe payments
-npm install react-hot-toast        # Toast notifications
 npm install lucide-react           # Icons
+npm install react-hot-toast        # Toast notifications
+
+# Payments
+npm install @stripe/stripe-js stripe
+
+# Authentication & Database
+npm install next-auth              # Admin authentication
+npm install @prisma/client         # Database ORM
+npm install prisma --save-dev      # Prisma CLI
+
+# File Uploads
+npm install cloudinary             # Image hosting
+npm install react-dropzone         # Drag & drop uploads
+
+# Forms & Validation
+npm install react-hook-form        # Form handling
+npm install zod                    # Schema validation
+npm install @hookform/resolvers    # Zod integration
+
+# Admin UI
+npm install @dnd-kit/core @dnd-kit/sortable  # Drag & drop reordering
+npm install date-fns               # Date formatting
+```
+
+## Database Schema (Prisma)
+
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+model TimelineSlide {
+  id          String   @id @default(cuid())
+  imageUrl    String
+  title       String
+  description String?
+  date        DateTime
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String?
+  date        DateTime
+  imageUrl    String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  read      Boolean  @default(false)
+  responded Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  content   String
+  approved  Boolean  @default(false)
+  order     Int?
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
 ```
