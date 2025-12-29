@@ -10,6 +10,7 @@ Community-driven charity website - Est. 2012
 - Next.js (App Router)
 - TypeScript
 - Tailwind CSS
+- Framer Motion (scroll animations)
 - Glassmorphism dark theme
 
 ## Design System
@@ -57,7 +58,20 @@ Text Light:         #e0f7fa (light cyan for headings)
 - No government funding - 100% community supported
 
 ### Timeline/Gallery
-- Photo gallery showcasing community impact over the years
+- **Vertical scrolling timeline** with scroll-triggered animations
+- Each slide is a full or large section that reveals as user scrolls
+- **Layout per slide:**
+  - Image slides in (from left or right, alternating)
+  - Date/year prominently displayed
+  - Caption/description text
+  - Vertical timeline line connecting slides (with dots/markers)
+- **Animations:**
+  - Images fade + slide in when entering viewport
+  - Text fades in with slight delay after image
+  - Smooth easing transitions
+  - Parallax effect on images (optional)
+  - Use Intersection Observer or scroll library (Framer Motion recommended)
+- **Mobile:** Stack vertically, images slide up from bottom
 - Optional: Community testimonials with approval system
 
 ### Events
