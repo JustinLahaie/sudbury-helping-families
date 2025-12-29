@@ -11,6 +11,8 @@ Community-driven charity website - Est. 2012
 - TypeScript
 - Tailwind CSS
 - Framer Motion (scroll animations)
+- Stripe (donations/payments)
+- Lucide React (icons)
 - Glassmorphism dark theme
 
 ## Design System
@@ -46,9 +48,18 @@ Text Light:         #e0f7fa (light cyan for headings)
 ## Pages
 
 ### Home Page
-- Hero with tagline and logo
-- Mission statement
-- Navigation buttons: About Us, Contact Us, Upcoming Events, Donate
+- **Hero Section:**
+  - Full-viewport height with logo animation on load
+  - Tagline with typewriter or fade-in effect
+  - Subtle animated gradient or particle background
+  - Scroll indicator (animated chevron/arrow)
+- **Impact Stats Section:**
+  - Animated counters (200+ families helped, 12+ years, etc.)
+  - Numbers count up when scrolled into view
+  - Icons for each stat
+- **Mission statement** with fade-in animation
+- **Quick action buttons:** About Us, Contact Us, Upcoming Events, Donate
+- **Partner logos** section (scrolling or grid)
 
 ### About Us
 - Founded 2012, grassroots charity
@@ -75,22 +86,41 @@ Text Light:         #e0f7fa (light cyan for headings)
 - Optional: Community testimonials with approval system
 
 ### Events
-- Upcoming community events
-- Youth dances
-- Fundraisers
+- **Upcoming Events** - card grid with glassmorphism cards
+- **Event cards include:** date badge, title, description, location
+- Hover effects on cards (lift + glow)
+- **Past Events** archive/accordion section
+- Filter/sort by year (optional)
 
 ### Donate
-- E-transfer to: sudburyhelpingfamilies@hotmail.com (Password: Charity)
+- **Hero banner** with emotional call-to-action
+- **Impact breakdown:** "What your donation provides"
+  - $25 = meals for a family
+  - $50 = essential supplies
+  - etc.
+- **E-transfer info** in a copy-to-clipboard card:
+  - Email: sudburyhelpingfamilies@hotmail.com
+  - Password: Charity
+- Trust indicators (years active, families helped)
 - Note: Not a registered charity, no tax receipts
-- Future consideration: Stripe integration
+- **Stripe integration** for online donations
+  - Preset amounts ($25, $50, $100) + custom amount
+  - Secure checkout
+  - Optional recurring donations
 
 ### Contact Us
-- Contact form (name, email, phone) -> sends to sudburyhelpingfamilies@hotmail.com
-- Mike Bellerose, Founder
-- Email: sudburyhelpingfamilies@gmail.com
-- Phone: 705-207-4170
-- Location: Sudbury and surrounding communities
-- Facebook: https://www.facebook.com/share/14R9XcKSaaW/
+- **Contact form** (name, email, phone, message)
+  - Real-time validation with helpful error messages
+  - Loading spinner on submit
+  - Success/error toast notifications
+  - Sends to: sudburyhelpingfamilies@hotmail.com
+- **Contact info card:**
+  - Mike Bellerose, Founder
+  - Email: sudburyhelpingfamilies@gmail.com (click to copy)
+  - Phone: 705-207-4170 (click to call on mobile)
+  - Location: Sudbury and surrounding communities
+- **Social links:** Facebook button
+- **Map embed** (optional) - Sudbury area
 - Note: Support provided through referrals only, not unsolicited requests
 
 ## Assets
@@ -99,10 +129,71 @@ Text Light:         #e0f7fa (light cyan for headings)
 - Gallery photos: `Files/sudburyandareahelpingfamiliesinneed/` (24 images)
 - Existing domain: https://www.sudburyhelpingfamilies.com/
 
+## UI Polish & Micro-interactions
+
+### Animations & Transitions
+- **Page transitions** - smooth fade/slide between pages
+- **Scroll animations** - elements reveal as user scrolls (staggered)
+- **Button hover effects** - scale, glow, color shift
+- **Card interactions** - lift on hover with subtle shadow
+- **Loading states** - skeleton screens while content loads
+- **Smooth scroll** - for anchor links and back-to-top
+
+### Global Components
+- **Floating Donate button** - fixed position, pulses subtly
+- **Back to top button** - appears after scrolling down
+- **Toast notifications** - for form submissions, copy actions
+- **Custom scrollbar** - styled to match theme
+- **Loading spinner** - branded with logo colors
+
+### Footer
+- Logo + tagline
+- Quick links to all pages
+- Contact info summary
+- Social links (Facebook)
+- "Made with love in Sudbury"
+- Copyright notice
+
+## Accessibility
+
+- Semantic HTML throughout
+- ARIA labels on interactive elements
+- Keyboard navigation support
+- Focus indicators (visible outlines)
+- Alt text on all images
+- Color contrast meets WCAG AA
+- Reduced motion option (respects prefers-reduced-motion)
+
+## SEO & Meta
+
+- Page titles and meta descriptions
+- Open Graph tags (for Facebook sharing)
+- Twitter card meta tags
+- Structured data (nonprofit schema)
+- Sitemap generation
+- Favicon + app icons (from logo)
+
+## Performance
+
+- Next.js Image optimization (WebP, lazy loading)
+- Font optimization (next/font)
+- Code splitting (automatic with Next.js)
+- Minimize bundle size
+- Cache static assets
+
 ## Development
 
 ```bash
 npm run dev     # Start dev server at localhost:3000
 npm run build   # Production build
 npm run start   # Start production server
+```
+
+## Dependencies to Install
+
+```bash
+npm install framer-motion          # Animations
+npm install @stripe/stripe-js      # Stripe payments
+npm install react-hot-toast        # Toast notifications
+npm install lucide-react           # Icons
 ```
