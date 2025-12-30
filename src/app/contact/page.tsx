@@ -189,14 +189,14 @@ export default function ContactPage() {
                 </div>
 
                 <a
-                  href="mailto:sudburyhelpingfamilies@gmail.com"
+                  href="mailto:sudburyhelpingfamilies@hotmail.com"
                   className="flex items-start gap-4 hover:bg-[#38b6c4]/10 p-2 -m-2 rounded-lg transition-colors"
                 >
                   <div className="w-10 h-10 rounded-lg bg-[#38b6c4]/20 flex items-center justify-center flex-shrink-0">
                     <Mail size={20} className="text-[#38b6c4]" />
                   </div>
                   <div>
-                    <p className="text-[#e0f7fa]">sudburyhelpingfamilies@gmail.com</p>
+                    <p className="text-[#e0f7fa]">sudburyhelpingfamilies@hotmail.com</p>
                     <p className="text-[#38b6c4]/70 text-sm">Click to send email</p>
                   </div>
                 </a>
