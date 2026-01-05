@@ -1,18 +1,18 @@
-import { Resend } from 'resend';
+import * as postmark from 'postmark';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
     // Check for API key at runtime
-    if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY is not configured');
+    if (!process.env.POSTMARK_API_TOKEN) {
+      console.error('POSTMARK_API_TOKEN is not configured');
       return NextResponse.json(
         { error: 'Email service not configured. Please contact us directly.' },
         { status: 503 }
       );
     }
 
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const client = new postmark.ServerClient(process.env.POSTMARK_API_TOKEN);
     const { name, email, phone, message } = await request.json();
 
     // Validate required fields
@@ -24,11 +24,11 @@ export async function POST(request: Request) {
     }
 
     // Send email
-    const { data, error } = await resend.emails.send({
-      from: 'Contact Form <onboarding@resend.dev>',
-      to: ['sudburyhelpingfamilies@hotmail.com'],
-      subject: `New Contact Form Submission from ${name}`,
-      html: `
+    const response = await client.sendEmail({
+      From: 'Sudbury Helping Families <notifications@sudburyhelpingfamilies.com>',
+      To: 'sudburyhelpingfamilies@hotmail.com',
+      Subject: `New Contact Form Submission from ${name}`,
+      HtmlBody: `
         <h2>New Contact Form Submission</h2>
         <p><strong>From:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
@@ -41,18 +41,11 @@ export async function POST(request: Request) {
           This message was sent from the Sudbury Helping Families website contact form.
         </p>
       `,
-      replyTo: email,
+      ReplyTo: email,
+      MessageStream: 'outbound',
     });
 
-    if (error) {
-      console.error('Resend error:', error);
-      return NextResponse.json(
-        { error: 'Failed to send email' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ success: true, id: data?.id });
+    return NextResponse.json({ success: true, id: response.MessageID });
   } catch (error) {
     console.error('Contact form error:', error);
     return NextResponse.json(
