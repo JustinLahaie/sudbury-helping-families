@@ -122,6 +122,60 @@ async function main() {
   }
 
   console.log('Events seeded')
+
+  // Seed donation impacts
+  const donationImpacts = [
+    {
+      id: 'seed-impact-1',
+      amount: '$25',
+      title: 'Meals for a Family',
+      description: 'Provides nutritious meals for a family of four for several days.',
+      icon: 'Utensils',
+      order: 1,
+    },
+    {
+      id: 'seed-impact-2',
+      amount: '$50',
+      title: 'Essential Supplies',
+      description: 'Covers hygiene products, cleaning supplies, and household essentials.',
+      icon: 'Package',
+      order: 2,
+    },
+    {
+      id: 'seed-impact-3',
+      amount: '$100',
+      title: 'Weekly Family Support',
+      description: 'Provides a full week of groceries and supplies for a family in need.',
+      icon: 'ShoppingCart',
+      order: 3,
+    },
+    {
+      id: 'seed-impact-4',
+      amount: '$250',
+      title: 'Emergency Assistance',
+      description: 'Helps cover urgent needs like utility bills or emergency supplies.',
+      icon: 'Heart',
+      order: 4,
+    },
+    {
+      id: 'seed-impact-5',
+      amount: '$500',
+      title: 'Monthly Family Sponsor',
+      description: 'Supports a family with ongoing assistance for an entire month.',
+      icon: 'Home',
+      order: 5,
+    },
+  ]
+
+  for (const impact of donationImpacts) {
+    await prisma.donationImpact.upsert({
+      where: { id: impact.id },
+      update: impact,
+      create: impact,
+    })
+  }
+
+  console.log('Donation impacts seeded')
 }
 
 main()

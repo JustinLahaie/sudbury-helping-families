@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Plus, Trash2, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
+import DatePicker from '@/components/ui/DatePicker'
+import TimePicker from '@/components/ui/TimePicker'
 
 interface Timeframe {
   id?: string
@@ -30,15 +32,27 @@ interface EventFormProps {
   }
 }
 
+// Parse time range string like "7:00 PM - 10:00 PM" into start and end times
+const parseTimeRange = (timeStr: string | null) => {
+  if (!timeStr) return { startTime: '', endTime: '' }
+  const parts = timeStr.split(' - ')
+  if (parts.length === 2) {
+    return { startTime: parts[0].trim(), endTime: parts[1].trim() }
+  }
+  return { startTime: timeStr.trim(), endTime: '' }
+}
+
 export default function EventForm({ event }: EventFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const parsedTime = parseTimeRange(event?.time || null)
   const [formData, setFormData] = useState({
     title: event?.title || '',
     description: event?.description || '',
     location: event?.location || '',
     date: event?.date ? new Date(event.date).toISOString().split('T')[0] : '',
-    time: event?.time || '',
+    startTime: parsedTime.startTime,
+    endTime: parsedTime.endTime,
     type: event?.type || 'Community Event',
     imageUrl: event?.imageUrl || '',
     isPast: event?.isPast || false,
@@ -91,10 +105,19 @@ export default function EventForm({ event }: EventFormProps) {
       const url = event ? `/api/admin/events/${event.id}` : '/api/admin/events'
       const method = event ? 'PUT' : 'POST'
 
+      // Combine start and end time into single time string
+      const time = formData.startTime
+        ? formData.endTime
+          ? `${formData.startTime} - ${formData.endTime}`
+          : formData.startTime
+        : ''
+
+      const { startTime: _startTime, endTime: _endTime, ...restFormData } = formData
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, timeframes }),
+        body: JSON.stringify({ ...restFormData, time, timeframes }),
       })
 
       if (!res.ok) {
@@ -143,33 +166,41 @@ export default function EventForm({ event }: EventFormProps) {
         />
       </div>
 
-      {/* Date and Time */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-[#e0f7fa] mb-2 text-sm font-medium">
-            Date *
-          </label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-4 py-3 text-[#e0f7fa] focus:outline-none focus:border-[#38b6c4]"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-[#e0f7fa] mb-2 text-sm font-medium">
-            Time
-          </label>
-          <input
-            type="text"
-            name="time"
-            value={formData.time}
-            onChange={handleChange}
-            placeholder="e.g., 7:00 PM - 10:00 PM"
-            className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-4 py-3 text-[#e0f7fa] focus:outline-none focus:border-[#38b6c4]"
-          />
+      {/* Date */}
+      <div>
+        <label className="block text-[#e0f7fa] mb-2 text-sm font-medium">
+          Date *
+        </label>
+        <DatePicker
+          value={formData.date}
+          onChange={(value) => setFormData((prev) => ({ ...prev, date: value }))}
+          placeholder="Select event date"
+          required
+        />
+      </div>
+
+      {/* Time Range */}
+      <div>
+        <label className="block text-[#e0f7fa] mb-2 text-sm font-medium">
+          Time
+        </label>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <span className="block text-[#e0f7fa]/60 text-xs mb-1">Start Time</span>
+            <TimePicker
+              value={formData.startTime}
+              onChange={(value) => setFormData((prev) => ({ ...prev, startTime: value }))}
+              placeholder="Start time"
+            />
+          </div>
+          <div>
+            <span className="block text-[#e0f7fa]/60 text-xs mb-1">End Time</span>
+            <TimePicker
+              value={formData.endTime}
+              onChange={(value) => setFormData((prev) => ({ ...prev, endTime: value }))}
+              placeholder="End time"
+            />
+          </div>
         </div>
       </div>
 
@@ -274,47 +305,41 @@ export default function EventForm({ event }: EventFormProps) {
                     <Trash2 size={16} />
                   </button>
                 </div>
-                <div className="grid md:grid-cols-2 gap-4 mb-3">
+                <div className="mb-3">
+                  <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={tf.title}
+                    onChange={(e) => updateTimeframe(index, 'title', e.target.value)}
+                    placeholder="e.g., Toddler Dance"
+                    className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
-                      Title *
+                      Start Time *
                     </label>
-                    <input
-                      type="text"
-                      value={tf.title}
-                      onChange={(e) => updateTimeframe(index, 'title', e.target.value)}
-                      placeholder="e.g., Toddler Dance"
-                      className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
+                    <TimePicker
+                      value={tf.startTime}
+                      onChange={(value) => updateTimeframe(index, 'startTime', value)}
+                      placeholder="Start"
                       required
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
-                        Start Time *
-                      </label>
-                      <input
-                        type="text"
-                        value={tf.startTime}
-                        onChange={(e) => updateTimeframe(index, 'startTime', e.target.value)}
-                        placeholder="4:00 PM"
-                        className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
-                        End Time *
-                      </label>
-                      <input
-                        type="text"
-                        value={tf.endTime}
-                        onChange={(e) => updateTimeframe(index, 'endTime', e.target.value)}
-                        placeholder="5:00 PM"
-                        className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
+                      End Time *
+                    </label>
+                    <TimePicker
+                      value={tf.endTime}
+                      onChange={(value) => updateTimeframe(index, 'endTime', value)}
+                      placeholder="End"
+                      required
+                    />
                   </div>
                 </div>
                 <div>
