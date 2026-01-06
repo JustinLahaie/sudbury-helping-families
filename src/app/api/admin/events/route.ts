@@ -6,6 +6,11 @@ export async function GET() {
   try {
     const events = await prisma.event.findMany({
       orderBy: { date: 'desc' },
+      include: {
+        timeframes: {
+          orderBy: { order: 'asc' },
+        },
+      },
     })
     return NextResponse.json(events)
   } catch {
@@ -21,18 +26,33 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
+    const { timeframes, ...eventData } = data
 
     const event = await prisma.event.create({
       data: {
-        title: data.title,
-        description: data.description,
-        location: data.location || null,
-        date: new Date(data.date),
-        time: data.time || null,
-        type: data.type || 'Community Event',
-        imageUrl: data.imageUrl || null,
-        published: data.published ?? true,
-        isPast: data.isPast ?? false,
+        title: eventData.title,
+        description: eventData.description,
+        location: eventData.location || null,
+        date: new Date(eventData.date),
+        time: eventData.time || null,
+        type: eventData.type || 'Community Event',
+        imageUrl: eventData.imageUrl || null,
+        published: eventData.published ?? true,
+        isPast: eventData.isPast ?? false,
+        timeframes: timeframes?.length > 0 ? {
+          create: timeframes.map((tf: { title: string; description: string; startTime: string; endTime: string }, index: number) => ({
+            title: tf.title,
+            description: tf.description || null,
+            startTime: tf.startTime,
+            endTime: tf.endTime,
+            order: index,
+          })),
+        } : undefined,
+      },
+      include: {
+        timeframes: {
+          orderBy: { order: 'asc' },
+        },
       },
     })
 

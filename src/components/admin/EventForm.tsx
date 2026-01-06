@@ -2,8 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+interface Timeframe {
+  id?: string
+  title: string
+  description: string | null
+  startTime: string
+  endTime: string
+  order: number
+}
 
 interface EventFormProps {
   event?: {
@@ -17,6 +26,7 @@ interface EventFormProps {
     imageUrl: string | null
     published: boolean
     isPast: boolean
+    timeframes?: Timeframe[]
   }
 }
 
@@ -34,6 +44,34 @@ export default function EventForm({ event }: EventFormProps) {
     isPast: event?.isPast || false,
     published: event?.published ?? true,
   })
+  const [timeframes, setTimeframes] = useState<Timeframe[]>(
+    event?.timeframes || []
+  )
+
+  const addTimeframe = () => {
+    setTimeframes([
+      ...timeframes,
+      {
+        title: '',
+        description: null,
+        startTime: '',
+        endTime: '',
+        order: timeframes.length,
+      },
+    ])
+  }
+
+  const removeTimeframe = (index: number) => {
+    setTimeframes(timeframes.filter((_, i) => i !== index))
+  }
+
+  const updateTimeframe = (index: number, field: keyof Timeframe, value: string) => {
+    setTimeframes(
+      timeframes.map((tf, i) =>
+        i === index ? { ...tf, [field]: field === 'description' && value === '' ? null : value } : tf
+      )
+    )
+  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -56,7 +94,7 @@ export default function EventForm({ event }: EventFormProps) {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, timeframes }),
       })
 
       if (!res.ok) {
@@ -191,6 +229,110 @@ export default function EventForm({ event }: EventFormProps) {
           />
           <span className="text-[#e0f7fa]">Past Event</span>
         </label>
+      </div>
+
+      {/* Timeframes Section */}
+      <div className="border-t border-[#38b6c4]/20 pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Clock size={20} className="text-[#f5a623]" />
+            <h3 className="text-lg font-medium text-[#e0f7fa]">Event Timeframes</h3>
+          </div>
+          <button
+            type="button"
+            onClick={addTimeframe}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#38b6c4]/20 text-[#38b6c4] hover:bg-[#38b6c4]/30 transition-colors text-sm"
+          >
+            <Plus size={16} />
+            Add Timeframe
+          </button>
+        </div>
+        <p className="text-[#e0f7fa]/60 text-sm mb-4">
+          Add multiple time slots for events with different sessions (e.g., Toddler Dance 4-5pm, Teen Dance 6-8pm)
+        </p>
+
+        {timeframes.length === 0 ? (
+          <div className="text-center py-6 text-[#e0f7fa]/50 border border-dashed border-[#38b6c4]/20 rounded-lg">
+            No timeframes added. Use the general time field above or add specific timeframes.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {timeframes.map((tf, index) => (
+              <div
+                key={index}
+                className="bg-[#1a2e2e]/50 border border-[#38b6c4]/20 rounded-lg p-4"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm text-[#f5a623] font-medium">
+                    Timeframe {index + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeTimeframe(index)}
+                    className="text-red-400 hover:text-red-300 transition-colors p-1"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={tf.title}
+                      onChange={(e) => updateTimeframe(index, 'title', e.target.value)}
+                      placeholder="e.g., Toddler Dance"
+                      className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
+                        Start Time *
+                      </label>
+                      <input
+                        type="text"
+                        value={tf.startTime}
+                        onChange={(e) => updateTimeframe(index, 'startTime', e.target.value)}
+                        placeholder="4:00 PM"
+                        className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
+                        End Time *
+                      </label>
+                      <input
+                        type="text"
+                        value={tf.endTime}
+                        onChange={(e) => updateTimeframe(index, 'endTime', e.target.value)}
+                        placeholder="5:00 PM"
+                        className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[#e0f7fa]/70 mb-1 text-xs">
+                    Description (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={tf.description || ''}
+                    onChange={(e) => updateTimeframe(index, 'description', e.target.value)}
+                    placeholder="e.g., Ages 2-5, parents welcome"
+                    className="w-full bg-[#1a2e2e] border border-[#38b6c4]/30 rounded-lg px-3 py-2 text-[#e0f7fa] text-sm focus:outline-none focus:border-[#38b6c4]"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Actions */}
