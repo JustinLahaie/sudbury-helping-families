@@ -8,10 +8,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('2011Charger!!', 12)
 
   await prisma.user.upsert({
-    where: { email: 'sudburyhelpingfamilies@gmail.com' },
+    where: { email: 'sudburyhelpingfamilies@hotmail.com' },
     update: { password: hashedPassword },
     create: {
-      email: 'sudburyhelpingfamilies@gmail.com',
+      email: 'sudburyhelpingfamilies@hotmail.com',
       password: hashedPassword,
       name: 'Admin',
     },
@@ -28,7 +28,7 @@ async function main() {
     },
     { key: 'families_helped', value: '200' },
     { key: 'years_active', value: '12' },
-    { key: 'contact_email', value: 'sudburyhelpingfamilies@gmail.com' },
+    { key: 'contact_email', value: 'sudburyhelpingfamilies@hotmail.com' },
     { key: 'contact_phone', value: '705-207-4170' },
     { key: 'founder_name', value: 'Mike Bellerose' },
   ]
