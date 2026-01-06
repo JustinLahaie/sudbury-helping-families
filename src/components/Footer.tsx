@@ -86,12 +86,17 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-[#38b6c4]/20 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[#38b6c4]/60">
-            © {new Date().getFullYear()} Sudbury and Area Helping Families in Need. All rights reserved.
-          </p>
-          <p className="flex items-center gap-1 text-xs text-[#38b6c4]/60">
-            Made with <Heart size={12} className="text-[#f5a623]" /> in Sudbury
+        <div className="mt-12 pt-6 border-t border-[#38b6c4]/20 flex flex-col items-center gap-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 w-full">
+            <p className="text-xs text-[#38b6c4]/60">
+              © {new Date().getFullYear()} Sudbury and Area Helping Families in Need. All rights reserved.
+            </p>
+            <p className="flex items-center gap-1 text-xs text-[#38b6c4]/60">
+              Made with <Heart size={12} className="text-[#f5a623]" /> in Sudbury
+            </p>
+          </div>
+          <p className="text-xs text-[#38b6c4]/50">
+            Website made by Alexis Lahaie :)
           </p>
         </div>
       </div>

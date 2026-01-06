@@ -46,6 +46,25 @@ function AnimatedCounter({ end, duration = 2000, suffix = '' }: { end: number; d
   );
 }
 
+// Pre-computed stable values for background bubbles (avoids hydration mismatch)
+const backgroundBubbles = [
+  { width: 280, height: 120, left: 10, top: 15, xOffset: 30, yOffset: -20, duration: 15 },
+  { width: 150, height: 200, left: 75, top: 25, xOffset: -25, yOffset: 35, duration: 18 },
+  { width: 100, height: 100, left: 45, top: 60, xOffset: 40, yOffset: 20, duration: 12 },
+  { width: 200, height: 180, left: 20, top: 80, xOffset: -30, yOffset: -25, duration: 20 },
+  { width: 120, height: 140, left: 85, top: 70, xOffset: 20, yOffset: 30, duration: 14 },
+  { width: 180, height: 160, left: 55, top: 10, xOffset: -35, yOffset: 15, duration: 16 },
+  { width: 90, height: 110, left: 30, top: 45, xOffset: 25, yOffset: -30, duration: 13 },
+  { width: 220, height: 190, left: 65, top: 85, xOffset: -20, yOffset: 40, duration: 19 },
+  { width: 160, height: 130, left: 5, top: 55, xOffset: 35, yOffset: -15, duration: 17 },
+  { width: 130, height: 170, left: 90, top: 35, xOffset: -40, yOffset: 25, duration: 11 },
+  { width: 250, height: 220, left: 40, top: 5, xOffset: 15, yOffset: -35, duration: 21 },
+  { width: 110, height: 90, left: 70, top: 50, xOffset: -15, yOffset: 45, duration: 15 },
+  { width: 170, height: 150, left: 15, top: 30, xOffset: 45, yOffset: -10, duration: 18 },
+  { width: 140, height: 210, left: 50, top: 75, xOffset: -45, yOffset: 20, duration: 14 },
+  { width: 190, height: 100, left: 80, top: 20, xOffset: 10, yOffset: -40, duration: 16 },
+];
+
 export default function Home() {
   return (
     <div className="flex-1">
@@ -54,23 +73,23 @@ export default function Home() {
         {/* Animated Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#1a2e2e] via-[#1a3535] to-[#1a2e2e]">
           <div className="absolute inset-0 opacity-30">
-            {[...Array(20)].map((_, i) => (
+            {backgroundBubbles.map((bubble, i) => (
               <motion.div
                 key={i}
                 className="absolute rounded-full bg-[#38b6c4]/20"
                 style={{
-                  width: Math.random() * 300 + 50,
-                  height: Math.random() * 300 + 50,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
+                  width: bubble.width,
+                  height: bubble.height,
+                  left: `${bubble.left}%`,
+                  top: `${bubble.top}%`,
                 }}
                 animate={{
-                  x: [0, Math.random() * 100 - 50],
-                  y: [0, Math.random() * 100 - 50],
+                  x: [0, bubble.xOffset],
+                  y: [0, bubble.yOffset],
                   scale: [1, 1.2, 1],
                 }}
                 transition={{
-                  duration: Math.random() * 10 + 10,
+                  duration: bubble.duration,
                   repeat: Infinity,
                   repeatType: 'reverse',
                 }}
@@ -305,6 +324,11 @@ export default function Home() {
               'YWCA Geneva House',
               'City of Sudbury Social Services',
               'Manitoulin Sudbury District Social Services Board',
+              'Nourishing Neighbors Sudbury Food Bank',
+              'Blue Door Soup Kitchen',
+              'Elgin Street Mission',
+              'Needing Leftovers Sudbury',
+              'North Bay Food Bank',
             ].map((partner) => (
               <span
                 key={partner}
