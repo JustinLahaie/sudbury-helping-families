@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Heart, Copy, Check, ShoppingBag, Pizza, Backpack, Gift, Home, Users, Utensils, LucideIcon } from 'lucide-react'
-import { useState } from 'react'
+import { Heart, Copy, Check, ShoppingBag, Pizza, Backpack, Gift, Home, Users, Utensils, LucideIcon, CreditCard, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 
 interface Impact {
@@ -29,8 +29,62 @@ const iconMap: Record<string, LucideIcon> = {
   Utensils,
 }
 
+const DONATION_AMOUNTS = [
+  { amount: 2500, label: '$25' },
+  { amount: 5000, label: '$50' },
+  { amount: 10000, label: '$100' },
+  { amount: 25000, label: '$250' },
+]
+
 export default function DonateClient({ impacts }: Props) {
   const [copied, setCopied] = useState<string | null>(null)
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
+  const [customAmount, setCustomAmount] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [stripeConfigured, setStripeConfigured] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    // Check if Stripe is configured
+    fetch('/api/stripe/status')
+      .then(res => res.json())
+      .then(data => setStripeConfigured(data.configured))
+      .catch(() => setStripeConfigured(false))
+  }, [])
+
+  const handleDonate = async () => {
+    if (!selectedAmount && !customAmount) {
+      toast.error('Please select or enter an amount')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: selectedAmount,
+          customAmount: customAmount || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.error) {
+        toast.error(data.error)
+        return
+      }
+
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
@@ -102,6 +156,93 @@ export default function DonateClient({ impacts }: Props) {
             })}
           </div>
         </motion.div>
+
+        {/* Credit Card Donation */}
+        {stripeConfigured && (
+          <motion.div
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="glass-card p-8 md:p-10 mb-12 border-[#38b6c4]/30"
+          >
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <CreditCard size={28} className="text-[#38b6c4]" />
+              <h2 className="text-2xl font-bold text-[#e0f7fa]">Donate with Card</h2>
+            </div>
+
+            <div className="max-w-md mx-auto">
+              {/* Amount Selection */}
+              <div className="grid grid-cols-4 gap-3 mb-4">
+                {DONATION_AMOUNTS.map((item) => (
+                  <button
+                    key={item.amount}
+                    onClick={() => {
+                      setSelectedAmount(item.amount)
+                      setCustomAmount('')
+                    }}
+                    className={`py-3 px-4 rounded-xl font-bold transition-all ${
+                      selectedAmount === item.amount
+                        ? 'bg-[#38b6c4] text-white'
+                        : 'bg-[#1a2e2e] text-[#e0f7fa] hover:bg-[#38b6c4]/20'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Amount */}
+              <div className="mb-6">
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#e0f7fa]/50 font-bold">$</span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Custom amount"
+                    value={customAmount}
+                    onChange={(e) => {
+                      setCustomAmount(e.target.value)
+                      setSelectedAmount(null)
+                    }}
+                    className="w-full bg-[#1a2e2e] text-[#e0f7fa] rounded-xl py-3 pl-8 pr-4 placeholder:text-[#e0f7fa]/30 focus:outline-none focus:ring-2 focus:ring-[#38b6c4]"
+                  />
+                </div>
+              </div>
+
+              {/* Donate Button */}
+              <button
+                onClick={handleDonate}
+                disabled={isLoading || (!selectedAmount && !customAmount)}
+                className="w-full btn-accent py-4 text-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Heart size={20} />
+                    Donate {selectedAmount ? DONATION_AMOUNTS.find(a => a.amount === selectedAmount)?.label : customAmount ? `$${customAmount}` : ''}
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-[#e0f7fa]/50 text-xs mt-4">
+                Secure payment powered by Stripe
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Divider */}
+        {stripeConfigured && (
+          <div className="flex items-center gap-4 mb-12">
+            <div className="flex-1 h-px bg-[#38b6c4]/20"></div>
+            <span className="text-[#e0f7fa]/50 text-sm">or</span>
+            <div className="flex-1 h-px bg-[#38b6c4]/20"></div>
+          </div>
+        )}
 
         {/* E-Transfer Card */}
         <motion.div

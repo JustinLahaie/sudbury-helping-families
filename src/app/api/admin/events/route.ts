@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         imageUrl: eventData.imageUrl || null,
         published: eventData.published ?? true,
         isPast: eventData.isPast ?? false,
+        isRaffle: eventData.isRaffle ?? false,
         timeframes: timeframes?.length > 0 ? {
           create: timeframes.map((tf: { title: string; description: string; startTime: string; endTime: string }, index: number) => ({
             title: tf.title,

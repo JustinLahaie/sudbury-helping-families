@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, Trash2, Clock } from 'lucide-react'
+import { Loader2, Plus, Trash2, Clock, ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import DatePicker from '@/components/ui/DatePicker'
 import TimePicker from '@/components/ui/TimePicker'
+import ImageUpload from '@/components/admin/ImageUpload'
 
 interface Timeframe {
   id?: string
@@ -28,6 +29,7 @@ interface EventFormProps {
     imageUrl: string | null
     published: boolean
     isPast: boolean
+    isRaffle: boolean
     timeframes?: Timeframe[]
   }
 }
@@ -56,6 +58,7 @@ export default function EventForm({ event }: EventFormProps) {
     type: event?.type || 'Community Event',
     imageUrl: event?.imageUrl || '',
     isPast: event?.isPast || false,
+    isRaffle: event?.isRaffle || false,
     published: event?.published ?? true,
   })
   const [timeframes, setTimeframes] = useState<Timeframe[]>(
@@ -233,9 +236,25 @@ export default function EventForm({ event }: EventFormProps) {
             <option value="Youth Event">Youth Event</option>
             <option value="Fundraiser">Fundraiser</option>
             <option value="Food Drive">Food Drive</option>
+            <option value="Raffle">Raffle</option>
             <option value="Other">Other</option>
           </select>
         </div>
+      </div>
+
+      {/* Thumbnail Image */}
+      <div>
+        <label className="block text-[#e0f7fa] mb-2 text-sm font-medium flex items-center gap-2">
+          <ImageIcon size={16} className="text-[#f5a623]" />
+          Event Thumbnail
+        </label>
+        <p className="text-[#e0f7fa]/60 text-sm mb-3">
+          Add an image to display with this event (optional)
+        </p>
+        <ImageUpload
+          value={formData.imageUrl || null}
+          onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl: url || '' }))}
+        />
       </div>
 
       {/* Checkboxes */}
@@ -260,7 +279,27 @@ export default function EventForm({ event }: EventFormProps) {
           />
           <span className="text-[#e0f7fa]">Past Event</span>
         </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            name="isRaffle"
+            checked={formData.isRaffle}
+            onChange={handleChange}
+            className="w-5 h-5 rounded border-[#f5a623]/30 bg-[#1a2e2e] text-[#f5a623] focus:ring-[#f5a623]"
+          />
+          <span className="text-[#e0f7fa]">Raffle Event</span>
+        </label>
       </div>
+
+      {formData.isRaffle && (
+        <div className="bg-[#f5a623]/10 border border-[#f5a623]/30 rounded-lg p-4">
+          <p className="text-[#f5a623] text-sm">
+            This event can be linked to a raffle. After creating the event, go to
+            <span className="font-semibold"> Admin → Raffles </span>
+            to create a raffle and link it to this event.
+          </p>
+        </div>
+      )}
 
       {/* Timeframes Section */}
       <div className="border-t border-[#38b6c4]/20 pt-6">

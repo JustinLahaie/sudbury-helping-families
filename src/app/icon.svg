@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Circular dark background -->
+  <circle cx="50" cy="50" r="50" fill="#1a2e2e"/>
+
+  <!-- Cyan arc (top-left hand) -->
+  <path
+    d="M50 15 A35 35 0 0 0 15 50"
+    stroke="#38b6c4"
+    stroke-width="14"
+    stroke-linecap="round"
+    fill="none"
+  />
+
+  <!-- Amber arc (bottom-right hand) -->
+  <path
+    d="M50 85 A35 35 0 0 0 85 50"
+    stroke="#f5a623"
+    stroke-width="14"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>

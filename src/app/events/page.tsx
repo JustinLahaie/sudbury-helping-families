@@ -1,8 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock, ChevronDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, MapPin, Clock, ChevronDown, CalendarPlus } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 interface Timeframe {
   id: string
@@ -25,6 +26,172 @@ interface Event {
   published: boolean
   isPast: boolean
   timeframes: Timeframe[]
+}
+
+// Calendar URL generators
+function formatDateForCalendar(dateStr: string, time?: string | null): { start: Date; end: Date } {
+  const date = new Date(dateStr);
+  if (time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    date.setHours(hours || 9, minutes || 0, 0, 0);
+  } else {
+    date.setHours(9, 0, 0, 0);
+  }
+  const start = new Date(date);
+  const end = new Date(date);
+  end.setHours(end.getHours() + 3); // Default 3-hour duration
+  return { start, end };
+}
+
+function toGoogleCalendarDate(date: Date): string {
+  return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+function toICSDate(date: Date): string {
+  return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+function generateGoogleCalendarUrl(event: Event, eventUrl: string): string {
+  const { start, end } = formatDateForCalendar(event.date, event.time);
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: event.title,
+    dates: `${toGoogleCalendarDate(start)}/${toGoogleCalendarDate(end)}`,
+    details: `${event.description}\n\nView event details: ${eventUrl}`,
+    location: event.location || 'Sudbury, Ontario',
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function generateOutlookCalendarUrl(event: Event, eventUrl: string): string {
+  const { start, end } = formatDateForCalendar(event.date, event.time);
+  const params = new URLSearchParams({
+    path: '/calendar/action/compose',
+    rru: 'addevent',
+    subject: event.title,
+    startdt: start.toISOString(),
+    enddt: end.toISOString(),
+    body: `${event.description}\n\nView event details: ${eventUrl}`,
+    location: event.location || 'Sudbury, Ontario',
+  });
+  return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
+}
+
+function generateICSFile(event: Event, eventUrl: string): void {
+  const { start, end } = formatDateForCalendar(event.date, event.time);
+  const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sudbury Helping Families//Events//EN
+BEGIN:VEVENT
+UID:${event.id}@sudburyhelpingfamilies.com
+DTSTAMP:${toICSDate(new Date())}
+DTSTART:${toICSDate(start)}
+DTEND:${toICSDate(end)}
+SUMMARY:${event.title}
+DESCRIPTION:${event.description.replace(/\n/g, '\\n')}\\n\\nView event details: ${eventUrl}
+LOCATION:${event.location || 'Sudbury, Ontario'}
+URL:${eventUrl}
+END:VEVENT
+END:VCALENDAR`;
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${event.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+// Add to Calendar Dropdown Component
+function AddToCalendarButton({ event }: { event: Event }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get the full URL for the event
+  const eventUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/events#event-${event.id}`
+    : `https://sudburyhelpingfamilies.com/events#event-${event.id}`;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleGoogleCalendar = () => {
+    window.open(generateGoogleCalendarUrl(event, eventUrl), '_blank');
+    setIsOpen(false);
+  };
+
+  const handleOutlookCalendar = () => {
+    window.open(generateOutlookCalendarUrl(event, eventUrl), '_blank');
+    setIsOpen(false);
+  };
+
+  const handleAppleCalendar = () => {
+    generateICSFile(event, eventUrl);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className={`relative ${isOpen ? 'z-50' : 'z-10'}`} ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f5a623]/20 text-[#f5a623] hover:bg-[#f5a623]/30 transition-colors text-sm font-medium border border-[#f5a623]/30"
+      >
+        <CalendarPlus size={16} />
+        Add to Calendar
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 bottom-full mb-2 w-48 rounded-lg bg-[#1a2e2e] border border-[#38b6c4]/30 shadow-xl z-[100] overflow-hidden"
+          >
+            <button
+              onClick={handleGoogleCalendar}
+              className="w-full px-4 py-3 text-left text-[#e0f7fa] hover:bg-[#38b6c4]/20 transition-colors flex items-center gap-3"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.5 3h-15A1.5 1.5 0 003 4.5v15A1.5 1.5 0 004.5 21h15a1.5 1.5 0 001.5-1.5v-15A1.5 1.5 0 0019.5 3zM12 18.75a6.75 6.75 0 110-13.5 6.75 6.75 0 010 13.5z"/>
+              </svg>
+              Google Calendar
+            </button>
+            <button
+              onClick={handleOutlookCalendar}
+              className="w-full px-4 py-3 text-left text-[#e0f7fa] hover:bg-[#38b6c4]/20 transition-colors flex items-center gap-3"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21.17 3H2.83A.83.83 0 002 3.83v16.34c0 .46.37.83.83.83h18.34c.46 0 .83-.37.83-.83V3.83a.83.83 0 00-.83-.83zM12 17H5V7h7v10z"/>
+              </svg>
+              Outlook
+            </button>
+            <button
+              onClick={handleAppleCalendar}
+              className="w-full px-4 py-3 text-left text-[#e0f7fa] hover:bg-[#38b6c4]/20 transition-colors flex items-center gap-3"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83z"/>
+              </svg>
+              Apple Calendar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export default function EventsPage() {
@@ -107,12 +274,25 @@ export default function EventsPage() {
                 return (
                   <motion.div
                     key={event.id}
+                    id={`event-${event.id}`}
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 + index * 0.1 }}
                     whileHover={{ scale: 1.02 }}
-                    className="glass-card p-6 md:p-8"
+                    className="glass-card p-6 md:p-8 scroll-mt-24 overflow-hidden"
                   >
+                    {/* Thumbnail Image */}
+                    {event.imageUrl && (
+                      <div className="relative w-full h-48 md:h-56 -mx-6 md:-mx-8 -mt-6 md:-mt-8 mb-6 overflow-hidden">
+                        <Image
+                          src={event.imageUrl}
+                          alt={event.title}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e2e] to-transparent" />
+                      </div>
+                    )}
                     <div className="flex flex-col md:flex-row md:items-start gap-6">
                       {/* Date Badge */}
                       <div className="flex-shrink-0">
@@ -168,11 +348,16 @@ export default function EventsPage() {
                         )}
 
                         {event.location && (
-                          <div className="flex items-center gap-1 text-sm text-[#38b6c4]/80">
+                          <div className="flex items-center gap-1 text-sm text-[#38b6c4]/80 mb-4">
                             <MapPin size={14} />
                             {event.location}
                           </div>
                         )}
+
+                        {/* Add to Calendar Button */}
+                        <div className="pt-2">
+                          <AddToCalendarButton event={event} />
+                        </div>
                       </div>
                     </div>
                   </motion.div>

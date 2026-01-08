@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Home, Users, ImageIcon, Calendar, Heart, Mail, Facebook } from 'lucide-react';
+import { Menu, X, Home, Users, ImageIcon, Calendar, Heart, Mail, Facebook, Ticket } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/gallery', label: 'Gallery', icon: ImageIcon },
   { href: '/events', label: 'Events', icon: Calendar },
   { href: '/donate', label: 'Donate', icon: Heart },
+  { href: '/donate/raffle-tickets', label: 'Raffle Tickets', icon: Ticket },
   { href: '/contact', label: 'Contact', icon: Mail },
 ];
 

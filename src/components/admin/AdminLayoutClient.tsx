@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Calendar, Image, Settings, LogOut, ExternalLink, Heart, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Calendar, Image, Settings, LogOut, ExternalLink, Heart, Menu, X, ChevronLeft, ChevronRight, Ticket } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/events', label: 'Events', icon: Calendar },
+  { href: '/admin/raffles', label: 'Raffles', icon: Ticket },
   { href: '/admin/timeline', label: 'Timeline/Gallery', icon: Image },
   { href: '/admin/donations', label: 'Donation Impacts', icon: Heart },
   { href: '/admin/settings', label: 'Site Settings', icon: Settings },
