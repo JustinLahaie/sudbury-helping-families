@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Ticket, Users, Clock, Mail, Phone, Calendar, Trophy } from 'lucide-react'
+import { ArrowLeft, Ticket, Users, Clock, Mail, Phone, Calendar, Trophy, X, Copy, Check } from 'lucide-react'
 import { format } from 'date-fns'
+import { motion, AnimatePresence } from 'framer-motion'
 import SpinningWheel from '@/components/SpinningWheel'
 import toast from 'react-hot-toast'
 
@@ -42,6 +43,15 @@ export default function RaffleDetailClient({ raffle }: Props) {
     raffle.winnerId ? raffle.entries.find((e) => e.id === raffle.winnerId) || null : null
   )
   const [isSaving, setIsSaving] = useState(false)
+  const [showWinnerModal, setShowWinnerModal] = useState(false)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    toast.success(`${field} copied!`)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
 
   const totalTickets = raffle.entries.reduce((sum, e) => sum + e.ticketCount, 0)
   const totalRevenue = totalTickets * raffle.ticketPrice
@@ -251,6 +261,7 @@ export default function RaffleDetailClient({ raffle }: Props) {
                   handleSelectWinner(fullEntry)
                 }
               }}
+              onWinnerClick={() => setShowWinnerModal(true)}
             />
 
             {isSaving && (
@@ -261,6 +272,136 @@ export default function RaffleDetailClient({ raffle }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Winner Details Modal */}
+      <AnimatePresence>
+        {showWinnerModal && winner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowWinnerModal(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-card p-6 md:p-8 w-full max-w-md border-[#f5a623]/30"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Trophy size={28} className="text-[#f5a623]" />
+                  <h3 className="text-xl font-bold text-[#e0f7fa]">Winner Details</h3>
+                </div>
+                <button
+                  onClick={() => setShowWinnerModal(false)}
+                  className="p-2 text-[#e0f7fa]/60 hover:text-[#e0f7fa] transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Name */}
+                <div className="bg-[#1a2e2e] rounded-xl p-4">
+                  <p className="text-[#38b6c4]/70 text-sm mb-1">Name</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xl font-bold text-[#f5a623]">{winner.name}</p>
+                    <button
+                      onClick={() => copyToClipboard(winner.name, 'Name')}
+                      className="p-2 rounded-lg hover:bg-[#38b6c4]/20 transition-colors"
+                    >
+                      {copiedField === 'Name' ? (
+                        <Check size={18} className="text-green-400" />
+                      ) : (
+                        <Copy size={18} className="text-[#38b6c4]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div className="bg-[#1a2e2e] rounded-xl p-4">
+                  <p className="text-[#38b6c4]/70 text-sm mb-1">Email</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail size={16} className="text-[#38b6c4]" />
+                      <p className="text-[#e0f7fa]">{winner.email}</p>
+                    </div>
+                    <button
+                      onClick={() => copyToClipboard(winner.email, 'Email')}
+                      className="p-2 rounded-lg hover:bg-[#38b6c4]/20 transition-colors"
+                    >
+                      {copiedField === 'Email' ? (
+                        <Check size={18} className="text-green-400" />
+                      ) : (
+                        <Copy size={18} className="text-[#38b6c4]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                {winner.phone && (
+                  <div className="bg-[#1a2e2e] rounded-xl p-4">
+                    <p className="text-[#38b6c4]/70 text-sm mb-1">Phone</p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Phone size={16} className="text-[#38b6c4]" />
+                        <p className="text-[#e0f7fa]">{winner.phone}</p>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(winner.phone!, 'Phone')}
+                        className="p-2 rounded-lg hover:bg-[#38b6c4]/20 transition-colors"
+                      >
+                        {copiedField === 'Phone' ? (
+                          <Check size={18} className="text-green-400" />
+                        ) : (
+                          <Copy size={18} className="text-[#38b6c4]" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tickets & Date */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[#1a2e2e] rounded-xl p-4">
+                    <p className="text-[#38b6c4]/70 text-sm mb-1">Tickets</p>
+                    <div className="flex items-center gap-2">
+                      <Ticket size={16} className="text-[#f5a623]" />
+                      <p className="text-lg font-bold text-[#e0f7fa]">
+                        {winner.ticketCount}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-[#1a2e2e] rounded-xl p-4">
+                    <p className="text-[#38b6c4]/70 text-sm mb-1">Purchased</p>
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} className="text-[#38b6c4]" />
+                      <p className="text-sm text-[#e0f7fa]">
+                        {format(new Date(winner.createdAt), 'MMM d')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-[#38b6c4]/20">
+                <a
+                  href={`mailto:${winner.email}?subject=Congratulations! You won the ${raffle.title} raffle!`}
+                  className="btn-accent w-full py-3 flex items-center justify-center gap-2"
+                >
+                  <Mail size={18} />
+                  Contact Winner
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -13,6 +13,7 @@ interface Entry {
 interface SpinningWheelProps {
   entries: Entry[]
   onSelectWinner: (entry: Entry) => void
+  onWinnerClick?: (entry: Entry) => void
 }
 
 const COLORS = [
@@ -21,7 +22,7 @@ const COLORS = [
   '#FFC107', '#3F51B5', '#FF9800', '#673AB7',
 ]
 
-export default function SpinningWheel({ entries, onSelectWinner }: SpinningWheelProps) {
+export default function SpinningWheel({ entries, onSelectWinner, onWinnerClick }: SpinningWheelProps) {
   const [isSpinning, setIsSpinning] = useState(false)
   const [rotation, setRotation] = useState(0)
   const [winner, setWinner] = useState<Entry | null>(null)
@@ -216,10 +217,14 @@ export default function SpinningWheel({ entries, onSelectWinner }: SpinningWheel
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="mt-6 glass-card p-6 text-center"
+          onClick={() => onWinnerClick?.(winner)}
+          className={`mt-6 glass-card p-6 text-center ${onWinnerClick ? 'cursor-pointer hover:ring-2 hover:ring-[#f5a623] transition-all' : ''}`}
         >
           <p className="text-[#38b6c4] text-sm mb-2">Winner!</p>
           <p className="text-2xl font-bold text-[#f5a623]">{winner.name}</p>
+          {onWinnerClick && (
+            <p className="text-[#e0f7fa]/50 text-xs mt-2">Click to view details</p>
+          )}
         </motion.div>
       )}
 

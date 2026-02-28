@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
 import { prisma } from '@/lib/prisma'
+
+// TESTING MODE - Skip Stripe payment
+const TESTING_MODE = true
 
 export async function POST(request: NextRequest) {
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json(
-        { error: 'Stripe is not configured' },
-        { status: 500 }
-      )
-    }
-
     const { raffleId, name, email, phone, ticketCount } = await request.json()
 
     if (!raffleId || !name || !email || ticketCount < 1) {
@@ -60,8 +55,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const totalAmount = raffle.ticketPrice * ticketCount
     const origin = request.headers.get('origin') || 'http://localhost:3000'
+
+    // TESTING MODE: Skip payment, create entry directly as completed
+    if (TESTING_MODE) {
+      const entry = await prisma.raffleEntry.create({
+        data: {
+          raffleId,
+          name,
+          email,
+          phone: phone || null,
+          ticketCount,
+          paymentStatus: 'completed',
+          stripeSessionId: `test_${Date.now()}`,
+        },
+      })
+
+      return NextResponse.json({
+        url: `${origin}/donate/raffle-tickets/success?session_id=test_${entry.id}`
+      })
+    }
+
+    // Production mode with Stripe
+    const { stripe } = await import('@/lib/stripe')
 
     // Create pending raffle entry
     const entry = await prisma.raffleEntry.create({

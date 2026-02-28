@@ -95,9 +95,12 @@ export default function Footer() {
               Made with <Heart size={12} className="text-[#f5a623]" /> in Sudbury
             </p>
           </div>
-          <p className="text-xs text-[#38b6c4]/50">
+          <Link
+            href="/secret-developer"
+            className="text-xs text-[#38b6c4]/50 hover:text-[#38b6c4] transition-colors cursor-pointer"
+          >
             Website made by Alexis Lahaie :)
-          </p>
+          </Link>
         </div>
       </div>
     </footer>

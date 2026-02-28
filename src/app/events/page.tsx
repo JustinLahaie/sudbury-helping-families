@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Clock, ChevronDown, CalendarPlus } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Timeframe {
   id: string
@@ -272,25 +273,25 @@ export default function EventsPage() {
               {upcomingEvents.map((event, index) => {
                 const { month, year } = formatDate(event.date);
                 return (
+                  <Link key={event.id} href={`/events/${event.id}`} className="block">
                   <motion.div
-                    key={event.id}
                     id={`event-${event.id}`}
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 + index * 0.1 }}
                     whileHover={{ scale: 1.02 }}
-                    className="glass-card p-6 md:p-8 scroll-mt-24 overflow-hidden"
+                    className="glass-card p-6 md:p-8 scroll-mt-24 overflow-hidden cursor-pointer"
                   >
                     {/* Thumbnail Image */}
                     {event.imageUrl && (
-                      <div className="relative w-full h-48 md:h-56 -mx-6 md:-mx-8 -mt-6 md:-mt-8 mb-6 overflow-hidden">
+                      <div className="relative w-full h-64 md:h-80 -mx-6 md:-mx-8 -mt-6 md:-mt-8 mb-6 overflow-hidden bg-black/20">
                         <Image
                           src={event.imageUrl}
                           alt={event.title}
                           fill
-                          className="object-cover"
+                          className="object-contain"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e2e] to-transparent" />
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#1a2e2e] to-transparent" />
                       </div>
                     )}
                     <div className="flex flex-col md:flex-row md:items-start gap-6">
@@ -361,6 +362,7 @@ export default function EventsPage() {
                       </div>
                     </div>
                   </motion.div>
+                  </Link>
                 );
               })}
             </div>
@@ -402,12 +404,12 @@ export default function EventsPage() {
                 {pastEvents.map((event, index) => {
                   const { year } = formatDate(event.date);
                   return (
+                    <Link key={event.id} href={`/events/${event.id}`} className="block">
                     <motion.div
-                      key={event.id}
                       initial={{ x: -20, opacity: 0 }}
                       animate={{ x: 0, opacity: 1 }}
                       transition={{ delay: index * 0.1 }}
-                      className="glass-card p-4 border-l-4 border-[#38b6c4]/50"
+                      className="glass-card p-4 border-l-4 border-[#38b6c4]/50 cursor-pointer hover:bg-[#38b6c4]/5 transition-colors"
                     >
                       <div className="flex items-start gap-4">
                         <span className="text-[#f5a623] font-bold">{year}</span>
@@ -430,6 +432,7 @@ export default function EventsPage() {
                         </div>
                       </div>
                     </motion.div>
+                    </Link>
                   );
                 })}
               </div>
