@@ -14,9 +14,8 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
   const event = await prisma.event.findUnique({
     where: { id },
     include: {
-      timeframes: {
-        orderBy: { order: 'asc' },
-      },
+      timeframes: { orderBy: { order: 'asc' } },
+      images: { orderBy: { order: 'asc' } },
     },
   })
 

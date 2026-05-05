@@ -65,7 +65,23 @@ const backgroundBubbles = [
   { width: 190, height: 100, left: 80, top: 20, xOffset: 10, yOffset: -40, duration: 16 },
 ];
 
+interface Partner {
+  id: string
+  name: string
+  logoUrl: string | null
+  websiteUrl: string | null
+}
+
 export default function Home() {
+  const [partners, setPartners] = useState<Partner[]>([])
+
+  useEffect(() => {
+    fetch('/api/sponsors', { cache: 'no-store' })
+      .then(res => res.json())
+      .then(data => setPartners(data))
+      .catch(() => {})
+  }, [])
+
   return (
     <div className="flex-1">
       {/* Hero Section */}
@@ -303,43 +319,49 @@ export default function Home() {
       </section>
 
       {/* Partners Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.h2
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-2xl md:text-3xl font-bold text-[#e0f7fa] mb-8"
-          >
-            Our Community Partners
-          </motion.h2>
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            className="flex flex-wrap justify-center gap-4"
-          >
-            {[
-              'Northern Ontario Families of Children with Cancer',
-              'YWCA Geneva House',
-              'City of Sudbury Social Services',
-              'Manitoulin Sudbury District Social Services Board',
-              'Nourishing Neighbors Sudbury Food Bank',
-              'Blue Door Soup Kitchen',
-              'Elgin Street Mission',
-              'Needing Leftovers Sudbury',
-              'North Bay Food Bank',
-            ].map((partner) => (
-              <span
-                key={partner}
-                className="px-4 py-2 rounded-full bg-[#38b6c4]/10 text-[#38b6c4] text-sm border border-[#38b6c4]/20"
-              >
-                {partner}
-              </span>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {partners.length > 0 && (
+        <section className="py-20 px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.h2
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-2xl md:text-3xl font-bold text-[#e0f7fa] mb-8"
+            >
+              Our Community Partners
+            </motion.h2>
+            <motion.div
+              initial={{ y: 30, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              className="flex flex-wrap justify-center gap-4"
+            >
+              {partners.map((partner) => {
+                const content = partner.logoUrl ? (
+                  <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-[#38b6c4]/10 border border-[#38b6c4]/20">
+                    <div className="relative w-6 h-6 flex-shrink-0">
+                      <Image src={partner.logoUrl} alt={partner.name} fill className="object-contain" />
+                    </div>
+                    <span className="text-[#38b6c4] text-sm">{partner.name}</span>
+                  </div>
+                ) : (
+                  <span className="px-4 py-2 rounded-full bg-[#38b6c4]/10 text-[#38b6c4] text-sm border border-[#38b6c4]/20">
+                    {partner.name}
+                  </span>
+                )
+
+                return partner.websiteUrl ? (
+                  <a key={partner.id} href={partner.websiteUrl} target="_blank" rel="noopener noreferrer" className="hover:scale-105 transition-transform">
+                    {content}
+                  </a>
+                ) : (
+                  <div key={partner.id}>{content}</div>
+                )
+              })}
+            </motion.div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

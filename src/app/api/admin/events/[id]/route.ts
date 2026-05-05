@@ -12,9 +12,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
-        timeframes: {
-          orderBy: { order: 'asc' },
-        },
+        timeframes: { orderBy: { order: 'asc' } },
+        images: { orderBy: { order: 'asc' } },
       },
     })
 
@@ -37,12 +36,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const { id } = await params
     const data = await request.json()
-    const { timeframes, ...eventData } = data
+    const { timeframes, images, ...eventData } = data
+    const imageUrls: string[] = Array.isArray(images) ? images.filter(Boolean) : []
+    const coverUrl = eventData.imageUrl || imageUrls[0] || null
 
-    // Delete existing timeframes and create new ones
-    await prisma.eventTimeframe.deleteMany({
-      where: { eventId: id },
-    })
+    await prisma.eventTimeframe.deleteMany({ where: { eventId: id } })
+    await prisma.eventImage.deleteMany({ where: { eventId: id } })
 
     const event = await prisma.event.update({
       where: { id },
@@ -53,7 +52,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         date: new Date(eventData.date),
         time: eventData.time || null,
         type: eventData.type || 'Community Event',
-        imageUrl: eventData.imageUrl || null,
+        imageUrl: coverUrl,
         published: eventData.published ?? true,
         isPast: eventData.isPast ?? false,
         isRaffle: eventData.isRaffle ?? false,
@@ -66,11 +65,13 @@ export async function PUT(request: Request, { params }: RouteParams) {
             order: index,
           })),
         } : undefined,
+        images: imageUrls.length > 0 ? {
+          create: imageUrls.map((url, index) => ({ url, order: index })),
+        } : undefined,
       },
       include: {
-        timeframes: {
-          orderBy: { order: 'asc' },
-        },
+        timeframes: { orderBy: { order: 'asc' } },
+        images: { orderBy: { order: 'asc' } },
       },
     })
 

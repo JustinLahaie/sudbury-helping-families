@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 import TimelineDisplay from '@/components/TimelineDisplay'
 import GalleryHeader from '@/components/GalleryHeader'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export const metadata: Metadata = {
   title: 'Gallery & Timeline',
   description: 'Explore our journey through the years. See photos and stories from over a decade of helping families in the Sudbury area since 2012.',

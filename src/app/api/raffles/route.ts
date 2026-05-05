@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET() {
   try {
     const now = new Date()
@@ -31,7 +34,9 @@ export async function GET() {
       orderBy: { startDate: 'asc' },
     })
 
-    return NextResponse.json(raffles)
+    return NextResponse.json(raffles, {
+      headers: { 'Cache-Control': 'no-store, max-age=0' },
+    })
   } catch (error) {
     console.error('Failed to fetch raffles:', error)
     return NextResponse.json(

@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import DonateClient from './DonateClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const defaultImpacts = [
   {
     id: 'default-1',

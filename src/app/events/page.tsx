@@ -15,6 +15,12 @@ interface Timeframe {
   order: number
 }
 
+interface EventImage {
+  id: string
+  url: string
+  order: number
+}
+
 interface Event {
   id: string
   title: string
@@ -27,6 +33,7 @@ interface Event {
   published: boolean
   isPast: boolean
   timeframes: Timeframe[]
+  images: EventImage[]
 }
 
 // Calendar URL generators
@@ -203,7 +210,7 @@ export default function EventsPage() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const res = await fetch('/api/events');
+        const res = await fetch('/api/events', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setEvents(data);
@@ -291,6 +298,11 @@ export default function EventsPage() {
                           fill
                           className="object-contain"
                         />
+                        {event.images && event.images.length > 1 && (
+                          <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-[#1a2e2e]/70 text-[#e0f7fa] text-xs backdrop-blur">
+                            {event.images.length} photos
+                          </span>
+                        )}
                         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#1a2e2e] to-transparent" />
                       </div>
                     )}

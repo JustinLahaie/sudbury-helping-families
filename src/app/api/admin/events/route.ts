@@ -7,9 +7,8 @@ export async function GET() {
     const events = await prisma.event.findMany({
       orderBy: { date: 'desc' },
       include: {
-        timeframes: {
-          orderBy: { order: 'asc' },
-        },
+        timeframes: { orderBy: { order: 'asc' } },
+        images: { orderBy: { order: 'asc' } },
       },
     })
     return NextResponse.json(events)
@@ -26,7 +25,9 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json()
-    const { timeframes, ...eventData } = data
+    const { timeframes, images, ...eventData } = data
+    const imageUrls: string[] = Array.isArray(images) ? images.filter(Boolean) : []
+    const coverUrl = eventData.imageUrl || imageUrls[0] || null
 
     const event = await prisma.event.create({
       data: {
@@ -36,7 +37,7 @@ export async function POST(request: Request) {
         date: new Date(eventData.date),
         time: eventData.time || null,
         type: eventData.type || 'Community Event',
-        imageUrl: eventData.imageUrl || null,
+        imageUrl: coverUrl,
         published: eventData.published ?? true,
         isPast: eventData.isPast ?? false,
         isRaffle: eventData.isRaffle ?? false,
@@ -49,11 +50,13 @@ export async function POST(request: Request) {
             order: index,
           })),
         } : undefined,
+        images: imageUrls.length > 0 ? {
+          create: imageUrls.map((url, index) => ({ url, order: index })),
+        } : undefined,
       },
       include: {
-        timeframes: {
-          orderBy: { order: 'asc' },
-        },
+        timeframes: { orderBy: { order: 'asc' } },
+        images: { orderBy: { order: 'asc' } },
       },
     })
 

@@ -3,6 +3,10 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Calendar, MapPin, Clock } from 'lucide-react'
+import EventGallery from '@/components/EventGallery'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -14,9 +18,8 @@ export default async function EventDetailPage({ params }: PageProps) {
   const event = await prisma.event.findUnique({
     where: { id, published: true },
     include: {
-      timeframes: {
-        orderBy: { order: 'asc' },
-      },
+      timeframes: { orderBy: { order: 'asc' } },
+      images: { orderBy: { order: 'asc' } },
     },
   })
 
@@ -46,8 +49,10 @@ export default async function EventDetailPage({ params }: PageProps) {
 
         {/* Event Card */}
         <div className="glass-card overflow-hidden">
-          {/* Image */}
-          {event.imageUrl && (
+          {/* Photos */}
+          {event.images.length > 0 ? (
+            <EventGallery images={event.images} alt={event.title} />
+          ) : event.imageUrl ? (
             <div className="relative w-full h-72 md:h-96 bg-black/20">
               <Image
                 src={event.imageUrl}
@@ -56,7 +61,7 @@ export default async function EventDetailPage({ params }: PageProps) {
                 className="object-contain"
               />
             </div>
-          )}
+          ) : null}
 
           <div className="p-6 md:p-10">
             {/* Type Badge */}

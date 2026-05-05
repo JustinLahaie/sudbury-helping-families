@@ -6,7 +6,7 @@ import { Loader2, Plus, Trash2, Clock, ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import DatePicker from '@/components/ui/DatePicker'
 import TimePicker from '@/components/ui/TimePicker'
-import ImageUpload from '@/components/admin/ImageUpload'
+import MultiImageUpload from '@/components/admin/MultiImageUpload'
 
 interface Timeframe {
   id?: string
@@ -14,6 +14,12 @@ interface Timeframe {
   description: string | null
   startTime: string
   endTime: string
+  order: number
+}
+
+interface EventImage {
+  id?: string
+  url: string
   order: number
 }
 
@@ -31,6 +37,7 @@ interface EventFormProps {
     isPast: boolean
     isRaffle: boolean
     timeframes?: Timeframe[]
+    images?: EventImage[]
   }
 }
 
@@ -64,6 +71,14 @@ export default function EventForm({ event }: EventFormProps) {
   const [timeframes, setTimeframes] = useState<Timeframe[]>(
     event?.timeframes || []
   )
+  const initialImages = (event?.images || [])
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((img) => img.url)
+  const seedImages = initialImages.length > 0
+    ? initialImages
+    : event?.imageUrl ? [event.imageUrl] : []
+  const [images, setImages] = useState<string[]>(seedImages)
 
   const addTimeframe = () => {
     setTimeframes([
@@ -116,11 +131,12 @@ export default function EventForm({ event }: EventFormProps) {
         : ''
 
       const { startTime: _startTime, endTime: _endTime, ...restFormData } = formData
+      const cover = images[0] || ''
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...restFormData, time, timeframes }),
+        body: JSON.stringify({ ...restFormData, imageUrl: cover, time, timeframes, images }),
       })
 
       if (!res.ok) {
@@ -242,19 +258,16 @@ export default function EventForm({ event }: EventFormProps) {
         </div>
       </div>
 
-      {/* Thumbnail Image */}
+      {/* Event Photos */}
       <div>
         <label className="block text-[#e0f7fa] mb-2 text-sm font-medium flex items-center gap-2">
           <ImageIcon size={16} className="text-[#f5a623]" />
-          Event Thumbnail
+          Event Photos
         </label>
         <p className="text-[#e0f7fa]/60 text-sm mb-3">
-          Add an image to display with this event (optional)
+          Add one or more photos. The first photo is used as the cover thumbnail. Hover a photo to reorder, set as cover, or remove.
         </p>
-        <ImageUpload
-          value={formData.imageUrl || null}
-          onChange={(url) => setFormData((prev) => ({ ...prev, imageUrl: url || '' }))}
-        />
+        <MultiImageUpload values={images} onChange={setImages} />
       </div>
 
       {/* Checkboxes */}

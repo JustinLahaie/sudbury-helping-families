@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Calendar, Image, Settings, LogOut, ExternalLink, Heart } from 'lucide-react'
+import { LayoutDashboard, Calendar, Image, Settings, LogOut, ExternalLink, Heart, Users } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/admin/events', label: 'Events', icon: Calendar },
   { href: '/admin/timeline', label: 'Timeline/Gallery', icon: Image },
   { href: '/admin/donations', label: 'Donation Impacts', icon: Heart },
+  { href: '/admin/sponsors', label: 'Sponsors', icon: Users },
   { href: '/admin/settings', label: 'Site Settings', icon: Settings },
 ]
 

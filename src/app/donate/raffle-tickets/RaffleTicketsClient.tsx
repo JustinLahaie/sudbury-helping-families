@@ -49,7 +49,7 @@ export default function RaffleTicketsClient() {
 
   const fetchRaffles = async () => {
     try {
-      const response = await fetch('/api/raffles')
+      const response = await fetch('/api/raffles', { cache: 'no-store' })
       const data = await response.json()
       setRaffles(data)
     } catch (error) {
