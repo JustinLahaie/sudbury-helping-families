@@ -29,12 +29,27 @@ export async function POST(request: Request) {
     const imageUrls: string[] = Array.isArray(images) ? images.filter(Boolean) : []
     const coverUrl = eventData.imageUrl || imageUrls[0] || null
 
+    if (!eventData.title || !eventData.description) {
+      return NextResponse.json(
+        { error: 'Title and description are required' },
+        { status: 400 }
+      )
+    }
+
+    const parsedDate = new Date(eventData.date)
+    if (isNaN(parsedDate.getTime())) {
+      return NextResponse.json(
+        { error: 'A valid date is required' },
+        { status: 400 }
+      )
+    }
+
     const event = await prisma.event.create({
       data: {
         title: eventData.title,
         description: eventData.description,
         location: eventData.location || null,
-        date: new Date(eventData.date),
+        date: parsedDate,
         time: eventData.time || null,
         type: eventData.type || 'Community Event',
         imageUrl: coverUrl,
@@ -42,7 +57,7 @@ export async function POST(request: Request) {
         isPast: eventData.isPast ?? false,
         isRaffle: eventData.isRaffle ?? false,
         timeframes: timeframes?.length > 0 ? {
-          create: timeframes.map((tf: { title: string; description: string; startTime: string; endTime: string }, index: number) => ({
+          create: timeframes.map((tf: { title: string; description: string | null; startTime: string; endTime: string }, index: number) => ({
             title: tf.title,
             description: tf.description || null,
             startTime: tf.startTime,
@@ -61,7 +76,10 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json(event, { status: 201 })
-  } catch {
-    return NextResponse.json({ error: 'Failed to create event' }, { status: 500 })
+  } catch (error) {
+    console.error('Failed to create event:', error)
+    const message =
+      error instanceof Error ? error.message : 'Failed to create event'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

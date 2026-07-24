@@ -22,8 +22,11 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     return NextResponse.json(event)
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch event' }, { status: 500 })
+  } catch (error) {
+    console.error('Failed to fetch event:', error)
+    const message =
+      error instanceof Error ? error.message : 'Failed to fetch event'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -40,44 +43,64 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const imageUrls: string[] = Array.isArray(images) ? images.filter(Boolean) : []
     const coverUrl = eventData.imageUrl || imageUrls[0] || null
 
-    await prisma.eventTimeframe.deleteMany({ where: { eventId: id } })
-    await prisma.eventImage.deleteMany({ where: { eventId: id } })
+    if (!eventData.title || !eventData.description) {
+      return NextResponse.json(
+        { error: 'Title and description are required' },
+        { status: 400 }
+      )
+    }
 
-    const event = await prisma.event.update({
-      where: { id },
-      data: {
-        title: eventData.title,
-        description: eventData.description,
-        location: eventData.location || null,
-        date: new Date(eventData.date),
-        time: eventData.time || null,
-        type: eventData.type || 'Community Event',
-        imageUrl: coverUrl,
-        published: eventData.published ?? true,
-        isPast: eventData.isPast ?? false,
-        isRaffle: eventData.isRaffle ?? false,
-        timeframes: timeframes?.length > 0 ? {
-          create: timeframes.map((tf: { title: string; description: string; startTime: string; endTime: string }, index: number) => ({
-            title: tf.title,
-            description: tf.description || null,
-            startTime: tf.startTime,
-            endTime: tf.endTime,
-            order: index,
-          })),
-        } : undefined,
-        images: imageUrls.length > 0 ? {
-          create: imageUrls.map((url, index) => ({ url, order: index })),
-        } : undefined,
-      },
-      include: {
-        timeframes: { orderBy: { order: 'asc' } },
-        images: { orderBy: { order: 'asc' } },
-      },
+    const parsedDate = new Date(eventData.date)
+    if (isNaN(parsedDate.getTime())) {
+      return NextResponse.json(
+        { error: 'A valid date is required' },
+        { status: 400 }
+      )
+    }
+
+    const event = await prisma.$transaction(async (tx) => {
+      await tx.eventTimeframe.deleteMany({ where: { eventId: id } })
+      await tx.eventImage.deleteMany({ where: { eventId: id } })
+
+      return tx.event.update({
+        where: { id },
+        data: {
+          title: eventData.title,
+          description: eventData.description,
+          location: eventData.location || null,
+          date: parsedDate,
+          time: eventData.time || null,
+          type: eventData.type || 'Community Event',
+          imageUrl: coverUrl,
+          published: eventData.published ?? true,
+          isPast: eventData.isPast ?? false,
+          isRaffle: eventData.isRaffle ?? false,
+          timeframes: timeframes?.length > 0 ? {
+            create: timeframes.map((tf: { title: string; description: string | null; startTime: string; endTime: string }, index: number) => ({
+              title: tf.title,
+              description: tf.description || null,
+              startTime: tf.startTime,
+              endTime: tf.endTime,
+              order: index,
+            })),
+          } : undefined,
+          images: imageUrls.length > 0 ? {
+            create: imageUrls.map((url, index) => ({ url, order: index })),
+          } : undefined,
+        },
+        include: {
+          timeframes: { orderBy: { order: 'asc' } },
+          images: { orderBy: { order: 'asc' } },
+        },
+      })
     })
 
     return NextResponse.json(event)
-  } catch {
-    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 })
+  } catch (error) {
+    console.error('Failed to update event:', error)
+    const message =
+      error instanceof Error ? error.message : 'Failed to update event'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -95,7 +118,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     })
 
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 })
+  } catch (error) {
+    console.error('Failed to delete event:', error)
+    const message =
+      error instanceof Error ? error.message : 'Failed to delete event'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

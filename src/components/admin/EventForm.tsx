@@ -140,14 +140,25 @@ export default function EventForm({ event }: EventFormProps) {
       })
 
       if (!res.ok) {
-        throw new Error('Failed to save event')
+        const body = await res.json().catch(() => null)
+        const message =
+          (body && typeof body.error === 'string' && body.error) ||
+          (res.status === 401
+            ? 'Your admin session expired. Please log in again.'
+            : `Failed to save event (${res.status})`)
+        throw new Error(message)
       }
 
       toast.success(event ? 'Event updated!' : 'Event created!')
       router.push('/admin/events')
       router.refresh()
-    } catch {
-      toast.error('Something went wrong')
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Something went wrong'
+      toast.error(message)
+      console.error('Event save failed:', error)
     } finally {
       setLoading(false)
     }
