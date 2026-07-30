@@ -134,27 +134,49 @@ export default function SpinningWheel({ entries, onSelectWinner, onWinnerClick }
     ctx.stroke()
   }
 
+  const pickRandomIndex = (count: number) => {
+    // Rejection-sample from crypto for a uniformly random index (no modulo bias).
+    if (count <= 0) return 0
+    const limit = Math.floor(0xffffffff / count) * count
+    const buf = new Uint32Array(1)
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      crypto.getRandomValues(buf)
+      if (buf[0] < limit) return buf[0] % count
+    }
+  }
+
   const spinWheel = () => {
     if (isSpinning || expandedEntries.length === 0) return
 
     setIsSpinning(true)
     setWinner(null)
 
-    // Random number of full rotations (5-10) plus random offset
-    const fullRotations = 5 + Math.random() * 5
-    const randomOffset = Math.random() * 360
-    const totalRotation = fullRotations * 360 + randomOffset
+    // 1. Pick the winner up-front so randomness is guaranteed uniform
+    //    (weighted by ticketCount because expandedEntries repeats each buyer).
+    const winningIndex = pickRandomIndex(expandedEntries.length)
+    const winningEntry = expandedEntries[winningIndex]
 
-    // Animate the spin
-    const duration = 5000 // 5 seconds
+    // 2. Compute the exact rotation that lands the pointer (right side, angle 0)
+    //    on the winning slice's mid-point. Slice i after rotation R occupies
+    //    canvas angles [i*slice + R, (i+1)*slice + R]. To align its centre with
+    //    the pointer at 360° we need R ≡ 360 - (winningIndex + 0.5)*slice (mod 360).
+    const sliceAngleDeg = 360 / expandedEntries.length
+    const jitter = (Math.random() - 0.5) * sliceAngleDeg * 0.6 // wobble within the slice
+    const targetMod =
+      ((360 - (winningIndex + 0.5) * sliceAngleDeg + jitter) % 360 + 360) % 360
+    const currentMod = ((rotation % 360) + 360) % 360
+    const delta = ((targetMod - currentMod) + 360) % 360
+    const fullSpins = 6
+    const totalRotation = fullSpins * 360 + delta
+
+    const duration = 5000
     const startTime = Date.now()
     const startRotation = rotation
 
     const animate = () => {
       const elapsed = Date.now() - startTime
       const progress = Math.min(elapsed / duration, 1)
-
-      // Easing function (ease out cubic)
       const easeOut = 1 - Math.pow(1 - progress, 3)
       const currentRotation = startRotation + totalRotation * easeOut
 
@@ -163,21 +185,9 @@ export default function SpinningWheel({ entries, onSelectWinner, onWinnerClick }
       if (progress < 1) {
         requestAnimationFrame(animate)
       } else {
-        // Calculate winner based on final position
-        const finalAngle = (currentRotation % 360 + 360) % 360
-        const sliceAngle = 360 / expandedEntries.length
-
-        // The pointer is on the right side (0 degrees in canvas terms)
-        // We need to find which slice the pointer is pointing at
-        const winningIndex = Math.floor(
-          (expandedEntries.length - Math.floor(finalAngle / sliceAngle)) % expandedEntries.length
-        )
-
-        const winningEntry = expandedEntries[winningIndex]
         setWinner(winningEntry)
         setIsSpinning(false)
 
-        // Trigger confetti
         confetti({
           particleCount: 150,
           spread: 100,
