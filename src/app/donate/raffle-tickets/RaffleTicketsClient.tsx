@@ -81,18 +81,31 @@ export default function RaffleTicketsClient() {
         }),
       })
 
-      const data = await response.json()
+      const data = await response.json().catch(() => null)
 
-      if (data.error) {
-        toast.error(data.error)
+      if (!response.ok) {
+        const message =
+          (data && typeof data.error === 'string' && data.error) ||
+          `Purchase failed (${response.status}). Please try again.`
+        toast.error(message)
+        console.error('Raffle checkout failed:', response.status, data)
         return
       }
 
-      if (data.url) {
+      if (data?.url) {
         window.location.href = data.url
+        return
       }
-    } catch {
-      toast.error('Something went wrong. Please try again.')
+
+      toast.error('Purchase did not complete. Please try again.')
+      console.error('Raffle checkout returned no url:', data)
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Something went wrong. Please try again.'
+      toast.error(message)
+      console.error('Raffle checkout threw:', error)
     } finally {
       setIsSubmitting(false)
     }

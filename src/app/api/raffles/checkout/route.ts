@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import { prisma } from '@/lib/prisma'
 
 // TESTING MODE - Skip Stripe payment
@@ -6,11 +7,35 @@ const TESTING_MODE = true
 
 export async function POST(request: NextRequest) {
   try {
-    const { raffleId, name, email, phone, ticketCount } = await request.json()
-
-    if (!raffleId || !name || !email || ticketCount < 1) {
+    const body = await request.json().catch(() => null)
+    if (!body || typeof body !== 'object') {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+
+    const raffleId = typeof body.raffleId === 'string' ? body.raffleId.trim() : ''
+    const name = typeof body.name === 'string' ? body.name.trim() : ''
+    const email = typeof body.email === 'string' ? body.email.trim() : ''
+    const phone = typeof body.phone === 'string' ? body.phone.trim() : ''
+    const ticketCount = Number(body.ticketCount)
+
+    if (!raffleId) {
+      return NextResponse.json({ error: 'Missing raffle id' }, { status: 400 })
+    }
+    if (!name) {
+      return NextResponse.json({ error: 'Please enter your name' }, { status: 400 })
+    }
+    if (!email || !email.includes('@')) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      )
+    }
+    if (!Number.isFinite(ticketCount) || ticketCount < 1) {
+      return NextResponse.json(
+        { error: 'Please choose at least one ticket' },
         { status: 400 }
       )
     }
@@ -65,10 +90,16 @@ export async function POST(request: NextRequest) {
           name,
           email,
           phone: phone || null,
-          ticketCount,
+          ticketCount: Math.floor(ticketCount),
           paymentStatus: 'completed',
-          stripeSessionId: `test_${Date.now()}`,
+          stripeSessionId: `test_${randomUUID()}`,
         },
+      })
+
+      console.log('[raffle-checkout] Test entry created:', {
+        id: entry.id,
+        raffleId,
+        ticketCount: entry.ticketCount,
       })
 
       return NextResponse.json({
@@ -77,7 +108,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Production mode with Stripe
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('[raffle-checkout] STRIPE_SECRET_KEY is not set')
+      return NextResponse.json(
+        { error: 'Payments are not configured. Please contact the site owner.' },
+        { status: 500 }
+      )
+    }
+
     const { stripe } = await import('@/lib/stripe')
+    const quantity = Math.floor(ticketCount)
 
     // Create pending raffle entry
     const entry = await prisma.raffleEntry.create({
@@ -86,7 +126,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         phone: phone || null,
-        ticketCount,
+        ticketCount: quantity,
         paymentStatus: 'pending',
       },
     })
@@ -99,12 +139,12 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: 'cad',
             product_data: {
-              name: `Raffle Ticket${ticketCount > 1 ? 's' : ''} - ${raffle.title}`,
-              description: `${ticketCount} ticket${ticketCount > 1 ? 's' : ''} for ${raffle.title}`,
+              name: `Raffle Ticket${quantity > 1 ? 's' : ''} - ${raffle.title}`,
+              description: `${quantity} ticket${quantity > 1 ? 's' : ''} for ${raffle.title}`,
             },
             unit_amount: raffle.ticketPrice,
           },
-          quantity: ticketCount,
+          quantity,
         },
       ],
       mode: 'payment',
@@ -115,7 +155,7 @@ export async function POST(request: NextRequest) {
         type: 'raffle_ticket',
         raffle_id: raffleId,
         entry_id: entry.id,
-        ticket_count: ticketCount.toString(),
+        ticket_count: quantity.toString(),
       },
     })
 
@@ -128,9 +168,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('Raffle checkout error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create checkout session' },
-      { status: 500 }
-    )
+    const message =
+      error instanceof Error ? error.message : 'Failed to create checkout session'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
