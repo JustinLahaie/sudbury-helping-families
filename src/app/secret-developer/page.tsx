@@ -238,6 +238,66 @@ export default function SecretDeveloperPage() {
             <p className="text-[#f5a623] font-medium text-lg">
               The Brilliant Developer Behind This Website
             </p>
+
+            {/* Super Duper Cool Person callout */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mt-8">
+              <motion.div
+                initial={{ x: -40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.9, type: 'spring' }}
+                className="flex flex-col items-center sm:items-end sm:text-right"
+              >
+                <p
+                  className="text-[#f5a623] font-black text-2xl sm:text-3xl leading-tight"
+                  style={{
+                    fontFamily: '"Comic Sans MS", "Marker Felt", "Chalkboard SE", cursive',
+                    transform: 'rotate(-4deg)',
+                    textShadow: '0 2px 0 rgba(0,0,0,0.35)',
+                  }}
+                >
+                  super duper
+                  <br />
+                  cool person
+                </p>
+                <svg
+                  width="160"
+                  height="90"
+                  viewBox="0 0 160 90"
+                  className="mt-2 rotate-6 sm:rotate-0"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M 8 18 Q 70 -2 118 48 Q 128 62 146 66"
+                    stroke="#f5a623"
+                    strokeWidth="3.5"
+                    fill="none"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M 132 56 L 150 66 L 138 82"
+                    stroke="#f5a623"
+                    strokeWidth="3.5"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.div>
+
+              <motion.div
+                initial={{ scale: 0, rotate: -12 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 1.0, type: 'spring', damping: 12 }}
+                className="relative rounded-2xl overflow-hidden border-4 border-[#f5a623] shadow-2xl shadow-[#f5a623]/40"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/super-duper-cool-person.png"
+                  alt="Super duper cool person"
+                  className="block w-48 h-64 sm:w-56 sm:h-72 object-cover"
+                />
+              </motion.div>
+            </div>
           </div>
 
           <div className="space-y-6 text-[#e0f7fa]/90 text-lg leading-relaxed">
