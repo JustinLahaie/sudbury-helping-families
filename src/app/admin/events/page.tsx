@@ -4,9 +4,13 @@ import { Plus, Calendar, Pencil } from 'lucide-react'
 import DeleteEventButton from '@/components/admin/DeleteEventButton'
 
 export default async function EventsPage() {
-  const events = await prisma.event.findMany({
-    orderBy: { date: 'desc' },
+  const all = await prisma.event.findMany({
+    orderBy: { date: 'asc' },
   })
+  // Upcoming first (soonest → latest), then past (most-recent-past → oldest).
+  const upcoming = all.filter((e) => !e.isPast)
+  const past = all.filter((e) => e.isPast).reverse()
+  const events = [...upcoming, ...past]
 
   return (
     <div>

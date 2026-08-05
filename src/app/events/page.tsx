@@ -225,7 +225,8 @@ export default function EventsPage() {
   }, []);
 
   const upcomingEvents = events.filter(e => !e.isPast);
-  const pastEvents = events.filter(e => e.isPast);
+  // API returns events ascending by date; keep past events most-recent-first.
+  const pastEvents = events.filter(e => e.isPast).slice().reverse();
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);

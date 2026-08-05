@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const events = await prisma.event.findMany({
       where: { published: true },
-      orderBy: { date: 'desc' },
+      orderBy: { date: 'asc' },
       include: {
         timeframes: { orderBy: { order: 'asc' } },
         images: { orderBy: { order: 'asc' } },
