@@ -296,6 +296,34 @@ export default function SecretDeveloperPage() {
                   alt="Super duper cool person"
                   className="block w-48 h-64 sm:w-56 sm:h-72 object-cover"
                 />
+                {/* Cross out the guy on the right */}
+                <motion.svg
+                  initial={{ scale: 0, opacity: 0, rotate: -30 }}
+                  animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                  transition={{ delay: 1.4, type: 'spring', damping: 10 }}
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                  className="absolute top-0 right-0 h-full pointer-events-none"
+                  style={{ width: '58%' }}
+                >
+                  <path
+                    d="M 8 8 L 92 92"
+                    stroke="#ff2a2a"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    fill="none"
+                    style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }}
+                  />
+                  <path
+                    d="M 92 8 L 8 92"
+                    stroke="#ff2a2a"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    fill="none"
+                    style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }}
+                  />
+                </motion.svg>
               </motion.div>
             </div>
           </div>
