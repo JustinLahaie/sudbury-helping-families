@@ -117,7 +117,7 @@ export default function SecretDeveloperPage() {
     // Fake "thinking" delay between 1-3 seconds
     const thinkingTime = 1000 + Math.random() * 2000;
     setTimeout(() => {
-      setAiMessages(prev => [...prev, { role: 'ai', text: 'Maybe.' }]);
+      setAiMessages(prev => [...prev, { role: 'ai', text: 'idk man but what i do know is that you should donate' }]);
       setAiTyping(false);
     }, thinkingTime);
   };
