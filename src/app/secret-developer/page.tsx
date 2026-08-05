@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function SecretDeveloperPage() {
   const hasLaunchedConfetti = useRef(false);
-  const [buttonState, setButtonState] = useState<'idle' | 'loading' | 'error' | 'done'>('idle');
+  const [buttonState, setButtonState] = useState<'idle' | 'loading' | 'exploding' | 'error' | 'done'>('idle');
   const [progress, setProgress] = useState(0);
   const [aiMessages, setAiMessages] = useState<Array<{ role: 'user' | 'ai'; text: string }>>([]);
   const [aiInput, setAiInput] = useState('');
@@ -89,10 +89,33 @@ export default function SecretDeveloperPage() {
       if (elapsed < duration) {
         requestAnimationFrame(animateProgress);
       } else {
-        // Show error popup
+        // 💥 NUKE
+        setButtonState('exploding');
+        const fireballColors = ['#ff4500', '#ffcc00', '#ffffff', '#ff0000', '#ff8800'];
+        confetti({
+          particleCount: 300,
+          spread: 360,
+          startVelocity: 60,
+          origin: { x: 0.5, y: 0.5 },
+          colors: fireballColors,
+          scalar: 1.4,
+          ticks: 250,
+        });
+        setTimeout(() => {
+          confetti({
+            particleCount: 200,
+            spread: 180,
+            startVelocity: 45,
+            gravity: 0.6,
+            origin: { x: 0.5, y: 0.55 },
+            colors: fireballColors,
+            scalar: 1.2,
+          });
+        }, 250);
+        // After the mushroom cloud, roll into the error popup
         setTimeout(() => {
           setButtonState('error');
-        }, 300);
+        }, 2200);
       }
     };
 
@@ -421,6 +444,120 @@ export default function SecretDeveloperPage() {
             )}
           </AnimatePresence>
         </motion.div>
+
+        {/* 💥 Nuke Explosion Overlay */}
+        <AnimatePresence>
+          {buttonState === 'exploding' && (
+            <motion.div
+              key="nuke"
+              className="fixed inset-0 z-[110] pointer-events-none overflow-hidden"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 1, x: [0, -14, 16, -12, 10, -6, 4, 0], y: [0, 10, -8, 6, -4, 2, 0] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.6, times: [0, 0.1, 0.2, 0.35, 0.5, 0.7, 0.85, 1] }}
+            >
+              {/* Blinding white flash */}
+              <motion.div
+                className="absolute inset-0 bg-white"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 0.6, 0] }}
+                transition={{ duration: 0.7, times: [0, 0.05, 0.3, 1] }}
+              />
+
+              {/* Fireball */}
+              <motion.div
+                className="absolute left-1/2 top-1/2 rounded-full"
+                style={{
+                  width: 40,
+                  height: 40,
+                  translateX: '-50%',
+                  translateY: '-50%',
+                  background:
+                    'radial-gradient(circle at 40% 40%, #ffffff 0%, #ffdd66 20%, #ff8800 45%, #ff2200 75%, rgba(80,0,0,0) 100%)',
+                  boxShadow: '0 0 120px 60px rgba(255,120,0,0.9)',
+                }}
+                initial={{ scale: 0, opacity: 1 }}
+                animate={{ scale: [0, 12, 22], opacity: [1, 1, 0.8] }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+              />
+
+              {/* Shockwave ring */}
+              <motion.div
+                className="absolute left-1/2 top-1/2 rounded-full border-4"
+                style={{
+                  width: 40,
+                  height: 40,
+                  translateX: '-50%',
+                  translateY: '-50%',
+                  borderColor: 'rgba(255, 200, 100, 0.9)',
+                }}
+                initial={{ scale: 0, opacity: 0.9 }}
+                animate={{ scale: 30, opacity: 0 }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+              />
+
+              {/* Mushroom cloud stem */}
+              <motion.div
+                className="absolute left-1/2 rounded-full"
+                style={{
+                  width: 90,
+                  bottom: '20%',
+                  translateX: '-50%',
+                  background:
+                    'linear-gradient(to top, rgba(60,30,10,0.9), rgba(120,70,40,0.8), rgba(200,140,80,0.7))',
+                  filter: 'blur(6px)',
+                }}
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: ['0vh', '35vh', '40vh'], opacity: [0, 1, 1] }}
+                transition={{ duration: 1.4, ease: 'easeOut', delay: 0.3 }}
+              />
+
+              {/* Mushroom cloud head */}
+              <motion.div
+                className="absolute left-1/2 rounded-full"
+                style={{
+                  width: 260,
+                  height: 200,
+                  top: '18%',
+                  translateX: '-50%',
+                  background:
+                    'radial-gradient(circle at 35% 40%, #ffcc66 0%, #ff8833 25%, #a63d20 55%, #4a1f10 90%)',
+                  filter: 'blur(4px)',
+                }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.1, 1.3], opacity: [0, 1, 0.95] }}
+                transition={{ duration: 1.4, ease: 'easeOut', delay: 0.35 }}
+              />
+
+              {/* Emoji punctuation */}
+              <motion.div
+                className="absolute left-1/2 top-1/2 text-[120px] select-none"
+                style={{ translateX: '-50%', translateY: '-50%' }}
+                initial={{ scale: 0, opacity: 0, rotate: -20 }}
+                animate={{ scale: [0, 1.4, 1], opacity: [0, 1, 1], rotate: [-20, 10, 0] }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+              >
+                ☢️
+              </motion.div>
+
+              {/* BOOM text */}
+              <motion.div
+                className="absolute left-1/2 text-white font-black tracking-widest"
+                style={{
+                  top: '12%',
+                  translateX: '-50%',
+                  fontSize: 'clamp(3rem, 12vw, 9rem)',
+                  textShadow: '0 0 24px #ff4500, 0 0 48px #ff0000',
+                }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.3, 1], opacity: [0, 1, 1] }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+              >
+                BOOM
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Error Popup Modal */}
         <AnimatePresence>
